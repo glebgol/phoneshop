@@ -1,7 +1,16 @@
-package com.es.core.model.phone;
+package com.es.core.model.phone.dao.impl;
 
+import com.es.core.model.phone.Phone;
+import com.es.core.model.phone.SortField;
+import com.es.core.model.phone.SortOrder;
+import com.es.core.model.phone.Stock;
+import com.es.core.model.phone.comparators.PhoneComparatorFactory;
+import com.es.core.model.phone.dao.PhoneDao;
+import com.es.core.model.phone.dao.StockDao;
+import com.es.core.model.phone.predicates.SearchPhonePredicate;
 import com.es.core.model.phone.setextractors.PhoneListResultSetExtractor;
 import com.es.core.model.phone.setextractors.PhoneResultSetExtractor;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -12,25 +21,31 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 public class JdbcPhoneDao implements PhoneDao {
     private final JdbcTemplate jdbcTemplate;
     private final PhoneListResultSetExtractor phoneListResultSetExtractor;
     private final PhoneResultSetExtractor phoneResultSetExtractor;
+    private final StockDao stockDao;
 
-    public JdbcPhoneDao(JdbcTemplate jdbcTemplate, PhoneListResultSetExtractor phoneListResultSetExtractor, PhoneResultSetExtractor phoneResultSetExtractor) {
+    public JdbcPhoneDao(JdbcTemplate jdbcTemplate, PhoneListResultSetExtractor phoneListResultSetExtractor,
+                        PhoneResultSetExtractor phoneResultSetExtractor, StockDao stockDao) {
         this.jdbcTemplate = jdbcTemplate;
         this.phoneListResultSetExtractor = phoneListResultSetExtractor;
         this.phoneResultSetExtractor = phoneResultSetExtractor;
+        this.stockDao = stockDao;
     }
 
     private static final String SELECT_PHONES_WITH_COLORS = """
             SELECT p.*, p2c.colorId, c.code FROM phones p
             LEFT JOIN phone2color p2c ON p.id = p2c.phoneId
             LEFT JOIN colors c ON c.id = p2c.colorId
-            WHERE p.id IN (SELECT id FROM phones LIMIT ? OFFSET ?) 
             """;
+    private static final String SELECT_PHONES_WITH_COLORS_WITH_LIMIT_AND_OFFSET = SELECT_PHONES_WITH_COLORS +
+            "WHERE p.id IN (SELECT id FROM phones LIMIT ? OFFSET ?)";
     private static final String SELECT_PHONE_BY_ID_WITH_COLORS = """
             SELECT p.*, p2c.*, c.code FROM phones p
             LEFT JOIN phone2color p2c ON p.id = p2c.phoneId
@@ -45,6 +60,8 @@ public class JdbcPhoneDao implements PhoneDao {
             ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); 
             """;
     private static final String INSERT_COLORS = "INSERT INTO phone2color (phoneId, colorId) VALUES ";
+    public static final String SELECT_COUNT_FROM_PHONES = "SELECT COUNT(*) FROM phones";
+    public static final String SELECT_PHONES = "SELECT * FROM phones";
 
     @Override
     public Optional<Phone> get(final Long key) {
@@ -67,9 +84,58 @@ public class JdbcPhoneDao implements PhoneDao {
     }
 
     @Override
-    @Transactional
     public List<Phone> findAll(int offset, int limit) {
-        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS, phoneListResultSetExtractor, limit, offset);
+        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS_WITH_LIMIT_AND_OFFSET, phoneListResultSetExtractor,
+                limit, offset);
+    }
+
+    @Override
+    public List<Phone> findAllWithPositiveStock(int offset, int limit) {
+        return getPhoneStreamWithPositiveStock(offset, limit)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Phone> findAllWithPositiveStock(SortField sortField, SortOrder sortOrder, int offset, int limit) {
+        return getPhoneStreamWithPositiveStock(offset, limit)
+                .sorted(PhoneComparatorFactory.createComparator(sortField, sortOrder))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Phone> findAllByQueryWithPositiveStock(String query, SortField sortField, SortOrder sortOrder,
+                                                       int offset, int limit) {
+        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS, phoneListResultSetExtractor).stream()
+                .filter(new SearchPhonePredicate(query))
+                .filter(this::isPositivePhoneStock)
+                .skip(offset)
+                .limit(limit)
+                .sorted(PhoneComparatorFactory.createComparator(sortField, sortOrder))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public int countPhones(String query) {
+        return (int) jdbcTemplate.query(SELECT_PHONES, new BeanPropertyRowMapper(Phone.class)).stream()
+                .filter(new SearchPhonePredicate(query))
+                .count();
+    }
+
+    @Override
+    public int countPhones() {
+        return jdbcTemplate.queryForObject(SELECT_COUNT_FROM_PHONES, Integer.class);
+    }
+
+    private Stream<Phone> getPhoneStreamWithPositiveStock(int offset, int limit) {
+        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS, phoneListResultSetExtractor).stream()
+                .filter(this::isPositivePhoneStock)
+                .skip(offset)
+                .limit(limit);
+    }
+
+    private boolean isPositivePhoneStock(Phone phone) {
+        Optional<Stock> stock = stockDao.get(phone.getId());
+        return stock.isPresent() && stock.get().getStock() > 0;
     }
 
     private void saveColors(Phone phone) {

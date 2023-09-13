@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +18,7 @@ import java.util.Map;
 public class PhoneListResultSetExtractor implements ResultSetExtractor<List<Phone>> {
     @Override
     public List<Phone> extractData(ResultSet resultSet) throws SQLException, DataAccessException {
-        Map<Long, Phone> phones = new HashMap<>();
+        Map<Long, Phone> phones = new LinkedHashMap<>();
 
         while (resultSet.next()) {
             Long id = resultSet.getLong("id");
