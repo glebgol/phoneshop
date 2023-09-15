@@ -90,21 +90,17 @@ public class JdbcPhoneDao implements PhoneDao {
     }
 
     @Override
-    public List<Phone> findAllWithPositiveStock(int offset, int limit) {
-        return getPhoneStreamWithPositiveStock(offset, limit)
+    public List<Phone> findAllInStock(int offset, int limit) {
+        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS, phoneListResultSetExtractor).stream()
+                .filter(this::isPositivePhoneStock)
+                .skip(offset)
+                .limit(limit)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<Phone> findAllWithPositiveStock(SortField sortField, SortOrder sortOrder, int offset, int limit) {
-        return getPhoneStreamWithPositiveStock(offset, limit)
-                .sorted(PhoneComparatorFactory.createComparator(sortField, sortOrder))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Phone> findAllByQueryWithPositiveStock(String query, SortField sortField, SortOrder sortOrder,
-                                                       int offset, int limit) {
+    public List<Phone> findAllInStock(String query, SortField sortField, SortOrder sortOrder,
+                                      int offset, int limit) {
         return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS, phoneListResultSetExtractor).stream()
                 .filter(new SearchPhonePredicate(query))
                 .filter(this::isPositivePhoneStock)
@@ -115,22 +111,23 @@ public class JdbcPhoneDao implements PhoneDao {
     }
 
     @Override
-    public int countPhones(String query) {
-        return (int) jdbcTemplate.query(SELECT_PHONES, new BeanPropertyRowMapper(Phone.class)).stream()
+    public List<Phone> findAllInStock(String query, int offset, int limit) {
+        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS, phoneListResultSetExtractor).stream()
                 .filter(new SearchPhonePredicate(query))
-                .count();
+                .filter(this::isPositivePhoneStock)
+                .skip(offset)
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public int countPhones() {
-        return jdbcTemplate.queryForObject(SELECT_COUNT_FROM_PHONES, Integer.class);
-    }
-
-    private Stream<Phone> getPhoneStreamWithPositiveStock(int offset, int limit) {
-        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS, phoneListResultSetExtractor).stream()
-                .filter(this::isPositivePhoneStock)
-                .skip(offset)
-                .limit(limit);
+    public int countPhones(String query) {
+        if (query == null) {
+            return jdbcTemplate.queryForObject(SELECT_COUNT_FROM_PHONES, Integer.class);
+        }
+        return (int) jdbcTemplate.query(SELECT_PHONES, new BeanPropertyRowMapper(Phone.class)).stream()
+                .filter(new SearchPhonePredicate(query))
+                .count();
     }
 
     private boolean isPositivePhoneStock(Phone phone) {

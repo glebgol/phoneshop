@@ -81,7 +81,7 @@ public class JdbcPhoneDaoIntTest {
 
     @Test
     public void findAllWithPositiveStock() {
-        List<Phone> phones = phoneDao.findAllWithPositiveStock(OFFSET, MIN_LIMIT);
+        List<Phone> phones = phoneDao.findAllInStock(OFFSET, MIN_LIMIT);
 
         assertFalse(phones.isEmpty());
     }

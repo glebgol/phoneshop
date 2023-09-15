@@ -17,7 +17,7 @@ public class PhoneComparatorFactory {
         } else if (sortField == SortField.DISPLAY_SIZE) {
             return new PhoneDisplaySizeComparator(sortOrder);
         } else {
-            throw new RuntimeException();
+            throw new RuntimeException("There are no comparators for " + sortField);
         }
     }
 }

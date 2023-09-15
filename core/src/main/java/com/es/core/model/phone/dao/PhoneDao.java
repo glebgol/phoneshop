@@ -11,10 +11,10 @@ public interface PhoneDao {
     Optional<Phone> get(Long key);
     void save(Phone phone);
     List<Phone> findAll(int offset, int limit);
-    List<Phone> findAllWithPositiveStock(int offset, int limit);
-    List<Phone> findAllWithPositiveStock(SortField sortField, SortOrder sortOrder, int offset, int limit);
-    List<Phone> findAllByQueryWithPositiveStock(String query, SortField sortField, SortOrder sortOrder, int offset,
-                                                int limit);
+    List<Phone> findAllInStock(int offset, int limit);
+    List<Phone> findAllInStock(String query, SortField sortField, SortOrder sortOrder, int offset,
+                               int limit);
+    List<Phone> findAllInStock(String query, int offset,
+                               int limit);
     int countPhones(String query);
-    int countPhones();
 }

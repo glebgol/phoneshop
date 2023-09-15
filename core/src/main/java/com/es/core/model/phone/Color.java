@@ -39,4 +39,9 @@ public class Color {
     public int hashCode() {
         return Objects.hash(id, code);
     }
+
+    @Override
+    public String toString() {
+        return code;
+    }
 }

@@ -4,6 +4,9 @@ import com.es.core.model.phone.Phone;
 
 import java.util.function.Predicate;
 
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 public class SearchPhonePredicate implements Predicate<Phone> {
     private final String query;
 
@@ -13,9 +16,7 @@ public class SearchPhonePredicate implements Predicate<Phone> {
 
     @Override
     public boolean test(Phone phone) {
-        return query != null && (phone.getBrand().toLowerCase().contains(query.toLowerCase()) ||
-                phone.getModel().toLowerCase().contains(query.toLowerCase()) ||
-                phone.getDescription().toLowerCase().contains(query.toLowerCase()) ||
-                phone.getDeviceType().equalsIgnoreCase(query));
+        return isBlank(query) || containsIgnoreCase(phone.getModel(), query) ||
+                containsIgnoreCase(phone.getBrand(), query);
     }
 }
