@@ -1,6 +1,5 @@
 package com.es.phoneshop.web.controller.pages;
 
-import com.es.core.cart.Cart;
 import com.es.core.cart.CartService;
 import com.es.core.model.phone.SortField;
 import com.es.core.model.phone.SortOrder;
@@ -15,15 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping(value = "/productList")
 public class ProductListPageController {
     private final PhoneDao phoneDao;
-    private final Cart cart;
     private static final Integer PAGE_LIMIT = 10;
     private final CartService cartService;
-    public static final String SUCCESS_ADDING_TO_CART = "success adding to cart!";
 
-
-    public ProductListPageController(PhoneDao phoneDao, Cart cart, CartService cartService) {
+    public ProductListPageController(PhoneDao phoneDao, CartService cartService) {
         this.phoneDao = phoneDao;
-        this.cart = cart;
         this.cartService = cartService;
     }
 
@@ -34,15 +29,10 @@ public class ProductListPageController {
                                   @RequestParam(required = false) SortOrder order, Model model) {
         int offset = PAGE_LIMIT * (page - 1);
 
-        if (sort == null || order == null) {
-            model.addAttribute("phones", phoneDao.findAllInStock(search, offset, PAGE_LIMIT));
-        } else {
-            model.addAttribute("phones", phoneDao.findAllInStock(search, sort, order, offset, PAGE_LIMIT));
-        }
-
+        model.addAttribute("phones", phoneDao.findAllInStock(search, sort, order, offset, PAGE_LIMIT));
         model.addAttribute("pagesCount", getPagesCount(search));
         model.addAttribute("currentPage", page);
-        model.addAttribute("cart", cart);
+        model.addAttribute("cart", cartService.getCart());
 
         return "productList";
     }

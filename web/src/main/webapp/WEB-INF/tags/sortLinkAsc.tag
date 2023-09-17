@@ -2,9 +2,8 @@
 <%@ tag trimDirectiveWhitespaces="true" %>
 <%@ attribute name="sort" required="true" %>
 <%@ attribute name="order" required="true" %>
-<%@ attribute name="currentPage" required="true" %>
 
-<a href="?page=${currentPage}&sort=${sort}&order=${order}&search=${param.search}">
+<a href="?sort=${sort}&order=${order}&search=${param.search}">
     <c:choose>
         <c:when test="${sort eq param.sort && order eq param.order}">
             <span class="glyphicon glyphicon-arrow-up" style="color:darkred"></span>

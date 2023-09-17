@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+//@Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class Cart {
     private List<CartItem> items;
     private int totalQuantity;
@@ -14,6 +15,13 @@ public class Cart {
 
     public Cart() {
         this.items = new ArrayList<>();
+        totalCost = new BigDecimal(0);
+    }
+
+    public Cart(List<CartItem> items, int totalQuantity, BigDecimal totalCost) {
+        this.items = items;
+        this.totalQuantity = totalQuantity;
+        this.totalCost = totalCost;
     }
 
     public List<CartItem> getItems() {

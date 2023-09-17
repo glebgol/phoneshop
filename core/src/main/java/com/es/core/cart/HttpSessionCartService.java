@@ -31,6 +31,7 @@ public class HttpSessionCartService implements CartService {
         if (phone.getPrice() == null) {
             phone.setPrice(new BigDecimal(0));
         }
+
         if (cartItemOptional.isPresent()) {
             updateCartItem(quantity, cartItemOptional);
         } else {
@@ -62,13 +63,13 @@ public class HttpSessionCartService implements CartService {
     }
 
     private Optional<CartItem> findCartItemByPhone(Phone phone) {
-        return cart.getItems().stream()
+        return getCart().getItems().stream()
                 .filter(cartItem -> cartItem.getPhone().equals(phone))
                 .findAny();
     }
 
     private void addNewCartItem(Long quantity, Phone phone) {
-        cart.getItems().add(new CartItem(phone, quantity.intValue()));
+        getCart().getItems().add(new CartItem(phone, quantity.intValue()));
     }
 
     private void updateCartItem(Long quantity, Optional<CartItem> cartItemOptional) {

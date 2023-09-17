@@ -8,7 +8,9 @@
       integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css"/>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <script src="scripts/addToCart.js" type="text/javascript"></script>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
   <title></title>
 </head>
@@ -27,8 +29,8 @@
       <div class="d-flex">
         Brand
         <div>
-          <tags:sortLinkAsc currentPage="${currentPage}" sort="BRAND" order="ASC"/>
-          <tags:sortLinkDesc currentPage="${currentPage}" sort="BRAND" order="DESC"/>
+          <tags:sortLinkAsc sort="BRAND" order="ASC"/>
+          <tags:sortLinkDesc sort="BRAND" order="DESC"/>
         </div>
       </div>
     </td>
@@ -36,8 +38,8 @@
       <div class="d-flex">
         Model
         <div>
-          <tags:sortLinkAsc currentPage="${currentPage}" sort="MODEL" order="ASC"/>
-          <tags:sortLinkDesc currentPage="${currentPage}" sort="MODEL" order="DESC"/>
+          <tags:sortLinkAsc sort="MODEL" order="ASC"/>
+          <tags:sortLinkDesc sort="MODEL" order="DESC"/>
         </div>
       </div>
     </td>
@@ -45,16 +47,16 @@
     <td>
       <div class="d-flex">Display size
         <div>
-          <tags:sortLinkAsc currentPage="${currentPage}" sort="DISPLAY_SIZE" order="ASC"/>
-          <tags:sortLinkDesc currentPage="${currentPage}" sort="DISPLAY_SIZE" order="DESC"/>
+          <tags:sortLinkAsc sort="DISPLAY_SIZE" order="ASC"/>
+          <tags:sortLinkDesc sort="DISPLAY_SIZE" order="DESC"/>
         </div>
       </div>
     </td>
     <td>
       <div class="d-flex">Price
         <div>
-          <tags:sortLinkAsc currentPage="${currentPage}" sort="PRICE" order="ASC"/>
-          <tags:sortLinkDesc currentPage="${currentPage}" sort="PRICE" order="DESC"/>
+          <tags:sortLinkAsc sort="PRICE" order="ASC"/>
+          <tags:sortLinkDesc sort="PRICE" order="DESC"/>
         </div>
       </div>
     </td>
@@ -79,17 +81,16 @@
     <td>
       <div id="addToCart${phone.id}">
         <c:set var="quantity" value="${1}"/>
-        <input class="form-control" name="quantity" value="${quantity}">
+        <input id="quantity-${phone.id}" class="form-control" name="quantity" value="${quantity}">
         <input name="productId" value="${phone.id}" type="hidden"/>
-        <p class="error" id="error${phone.id}"></p>
+        <div style="color: green" id="successMessage-${phone.id}"></div>
+        <div style="color: red" id="errorMessage-${phone.id}"></div>
       </div>
     </td>
     <td>
-      <button class="btn btn-light" onclick="handleButtonClick(${phone.id}, ${quantity})">Add to cart</button>
+      <input type="button" onclick="addToCart(${phone.id})" value="Add to cart">
     </td>
   </tr>
   </c:forEach>
 </table>
 <tags:pagination pagesCount="${pagesCount}"/>
-
-<script src="scripts/addToCart.js" type="text/javascript"></script>
