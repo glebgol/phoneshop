@@ -1,13 +1,14 @@
 package com.es.core.cart;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.annotation.SessionScope;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-//@Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
+//@SessionScope
 public class Cart {
     private List<CartItem> items;
     private int totalQuantity;

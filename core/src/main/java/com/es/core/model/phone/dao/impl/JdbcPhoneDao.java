@@ -47,6 +47,13 @@ public class JdbcPhoneDao implements PhoneDao {
             WHERE p.id = ?
             """;
     public static final String WHERE_PHONES_IN_STOCK = " WHERE (SELECT stock FROM stocks WHERE phoneId = p.id) > 0 ";
+    public static final String SELECT_IN_STOCK_PHONES = """
+            SELECT p.*, p2c.*, c.code FROM 
+            (SELECT p.* FROM phones p JOIN stocks s ON p.id = s.phoneId WHERE s.stock > 0 
+            AND p.price IS NOT NULL LIMIT ? OFFSET ?) p
+             LEFT JOIN phone2color p2c ON p.id = p2c.phoneId 
+             LEFT JOIN colors c ON c.id = p2c.colorId
+            """;
     private static final String INSERT_PHONE = """
             INSERT INTO phones (brand, model, price, displaySizeInches, weightGr, lengthMm, widthMm, heightMm, 
             announced, deviceType, os, displayResolution, pixelDensity, displayTechnology, backCameraMegapixels, 
@@ -79,14 +86,12 @@ public class JdbcPhoneDao implements PhoneDao {
 
     @Override
     public List<Phone> findAll(int offset, int limit) {
-        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS_WITH_LIMIT_AND_OFFSET, phoneListResultSetExtractor,
-                limit, offset);
+        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS_WITH_LIMIT_AND_OFFSET, phoneListResultSetExtractor, limit,
+                offset);
     }
-
     @Override
     public List<Phone> findAllInStock(int offset, int limit) {
-        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS + WHERE_PHONES_IN_STOCK + LIMIT_OFFSET,
-                phoneListResultSetExtractor, limit, offset);
+        return jdbcTemplate.query(SELECT_IN_STOCK_PHONES, phoneListResultSetExtractor, limit, offset);
     }
 
     @Override
@@ -95,19 +100,45 @@ public class JdbcPhoneDao implements PhoneDao {
             return findAllInStock(offset, limit);
         }
 
-        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS + WHERE_PHONES_IN_STOCK + getAndLikeQueryString(query)
-                + LIMIT_OFFSET, phoneListResultSetExtractor, limit, offset);
+        return jdbcTemplate.query(getFindAllInStockByQueryString(query), phoneListResultSetExtractor, limit, offset);
+    }
+
+    private String getFindAllInStockByQueryString(String query) {
+        return """
+            SELECT p.*, p2c.*, c.code FROM 
+            (SELECT p.* FROM phones p JOIN stocks s ON p.id = s.phoneId WHERE s.stock > 0 
+            AND p.price IS NOT NULL"""
+                + getAndLikeQueryString(query) +
+             """ 
+             LIMIT ? OFFSET ?) p
+             LEFT JOIN phone2color p2c ON p.id = p2c.phoneId 
+             LEFT JOIN colors c ON c.id = p2c.colorId
+            """;
     }
 
     @Override
-    public List<Phone> findAllInStock(String query, SortField sortField, SortOrder sortOrder,
-                                      int offset, int limit) {
+    public List<Phone> findAllInStock(String query, SortField sortField, SortOrder sortOrder, int offset, int limit) {
         if (sortField == null || sortOrder == null) {
             return findAllInStock(query, offset, limit);
         }
 
-        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS + WHERE_PHONES_IN_STOCK + getAndLikeQueryString(query) +
-                getSortingQuery(sortField, sortOrder) + LIMIT_OFFSET, phoneListResultSetExtractor, limit, offset);
+        return jdbcTemplate.query(getFindAllInStockByQueryAndOrderString(query, sortField, sortOrder),
+                phoneListResultSetExtractor, limit, offset);
+    }
+
+    private String getFindAllInStockByQueryAndOrderString(String query, SortField sortField, SortOrder sortOrder) {
+        return """
+            SELECT p.*, p2c.*, c.code FROM 
+            (SELECT p.* FROM phones p JOIN stocks s ON p.id = s.phoneId WHERE s.stock > 0
+             AND p.price IS NOT NULL
+             """
+                + getAndLikeQueryString(query) +
+                 getSortingQuery(sortField, sortOrder) +
+                """
+                LIMIT ? OFFSET ?) p 
+                LEFT JOIN phone2color p2c ON p.id = p2c.phoneId 
+                LEFT JOIN colors c ON c.id = p2c.colorId
+               """;
     }
 
     @Override

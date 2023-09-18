@@ -74,6 +74,7 @@ public class PhoneListResultSetExtractor implements ResultSetExtractor<List<Phon
                 .heightMm(resultSet.getBigDecimal("heightMm"))
                 .widthMm(resultSet.getBigDecimal("widthMm"))
                 .ramGb(resultSet.getBigDecimal("ramGb"))
+                .model(resultSet.getString("model"))
                 .build();
     }
 }

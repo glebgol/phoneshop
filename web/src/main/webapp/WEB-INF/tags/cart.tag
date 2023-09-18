@@ -3,7 +3,7 @@
 
 <button>
     <p>
-        <div id ="totalQuantity">My Cart: ${cart.totalQuantity} items</div>
+        <div id ="totalQuantity">Cart: ${cart.totalQuantity} items</div>
         <div id ="totalCost">${cart.totalCost} $</div>
     </p>
 </button>

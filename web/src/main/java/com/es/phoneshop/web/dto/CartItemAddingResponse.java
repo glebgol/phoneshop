@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class CartItemAddingResponse {
     private int cartItemsQuantity;
-    private BigDecimal cost;
+    private BigDecimal totalCost;
     private String resultMessage;
 
     public CartItemAddingResponse(String message) {
@@ -13,7 +13,7 @@ public class CartItemAddingResponse {
 
     public CartItemAddingResponse(int cartItemsQuantity, BigDecimal cost, String message) {
         this.cartItemsQuantity = cartItemsQuantity;
-        this.cost = cost;
+        this.totalCost = cost;
         this.resultMessage = message;
     }
 
@@ -28,12 +28,12 @@ public class CartItemAddingResponse {
         this.cartItemsQuantity = cartItemsQuantity;
     }
 
-    public BigDecimal getCost() {
-        return cost;
+    public BigDecimal getTotalCost() {
+        return totalCost;
     }
 
-    public void setCost(BigDecimal cost) {
-        this.cost = cost;
+    public void setTotalCost(BigDecimal totalCost) {
+        this.totalCost = totalCost;
     }
 
     public String getResultMessage() {

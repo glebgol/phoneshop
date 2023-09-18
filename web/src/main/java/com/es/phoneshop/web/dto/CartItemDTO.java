@@ -1,13 +1,8 @@
 package com.es.phoneshop.web.dto;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-
 public class CartItemDTO {
     private Integer phoneId;
 
-    @NotNull
-    @Min(value = 1, message = "Quantity should be positive integer")
     private Integer quantity;
 
     public CartItemDTO(Integer productId, Integer quantity) {
