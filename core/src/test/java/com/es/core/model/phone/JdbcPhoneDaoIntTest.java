@@ -1,5 +1,6 @@
 package com.es.core.model.phone;
 
+import com.es.core.model.phone.dao.PhoneDao;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ public class JdbcPhoneDaoIntTest {
     private static final Long EXISTING_PHONE_ID = 1000L;
     private static final int OFFSET = 0;
     private static final int LIMIT = 10000;
+    private static final int MIN_LIMIT = 10;
     private static final Set<Color> COLORS = Set.of(new Color(1000L, "Black"),
             new Color(1001L, "White"), new Color(1002L, "Yellow"));
     private static final String MODEL = "Mi 11 lite";
@@ -75,5 +77,12 @@ public class JdbcPhoneDaoIntTest {
 
         assertEquals(COLORS.size(), phone.getColors().size());
         assertEquals(countBefore + 1, countAfter);
+    }
+
+    @Test
+    public void findAllWithPositiveStock() {
+        List<Phone> phones = phoneDao.findAllInStock(OFFSET, MIN_LIMIT);
+
+        assertFalse(phones.isEmpty());
     }
 }

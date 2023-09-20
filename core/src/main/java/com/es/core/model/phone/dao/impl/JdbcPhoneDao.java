@@ -1,5 +1,9 @@
-package com.es.core.model.phone;
+package com.es.core.model.phone.dao.impl;
 
+import com.es.core.model.phone.Phone;
+import com.es.core.model.phone.SortField;
+import com.es.core.model.phone.SortOrder;
+import com.es.core.model.phone.dao.PhoneDao;
 import com.es.core.model.phone.setextractors.PhoneListResultSetExtractor;
 import com.es.core.model.phone.setextractors.PhoneResultSetExtractor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -13,29 +17,42 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 @Component
 public class JdbcPhoneDao implements PhoneDao {
     private final JdbcTemplate jdbcTemplate;
     private final PhoneListResultSetExtractor phoneListResultSetExtractor;
     private final PhoneResultSetExtractor phoneResultSetExtractor;
 
-    public JdbcPhoneDao(JdbcTemplate jdbcTemplate, PhoneListResultSetExtractor phoneListResultSetExtractor, PhoneResultSetExtractor phoneResultSetExtractor) {
+    public JdbcPhoneDao(JdbcTemplate jdbcTemplate, PhoneListResultSetExtractor phoneListResultSetExtractor,
+                        PhoneResultSetExtractor phoneResultSetExtractor) {
         this.jdbcTemplate = jdbcTemplate;
         this.phoneListResultSetExtractor = phoneListResultSetExtractor;
         this.phoneResultSetExtractor = phoneResultSetExtractor;
     }
 
+    public static final String LIMIT_OFFSET = "LIMIT ? OFFSET ?";
     private static final String SELECT_PHONES_WITH_COLORS = """
             SELECT p.*, p2c.colorId, c.code FROM phones p
             LEFT JOIN phone2color p2c ON p.id = p2c.phoneId
             LEFT JOIN colors c ON c.id = p2c.colorId
-            WHERE p.id IN (SELECT id FROM phones LIMIT ? OFFSET ?) 
             """;
+    private static final String SELECT_PHONES_WITH_COLORS_WITH_LIMIT_AND_OFFSET = SELECT_PHONES_WITH_COLORS +
+            "WHERE p.id IN (SELECT id FROM phones " + LIMIT_OFFSET + ")";
     private static final String SELECT_PHONE_BY_ID_WITH_COLORS = """
             SELECT p.*, p2c.*, c.code FROM phones p
             LEFT JOIN phone2color p2c ON p.id = p2c.phoneId
             LEFT JOIN colors c ON c.id = p2c.colorId
             WHERE p.id = ?
+            """;
+    public static final String WHERE_PHONES_IN_STOCK = " WHERE (SELECT stock FROM stocks WHERE phoneId = p.id) > 0 ";
+    public static final String SELECT_IN_STOCK_PHONES = """
+            SELECT p.*, p2c.*, c.code FROM 
+            (SELECT p.* FROM phones p JOIN stocks s ON p.id = s.phoneId WHERE s.stock > 0 
+            AND p.price IS NOT NULL LIMIT ? OFFSET ?) p
+             LEFT JOIN phone2color p2c ON p.id = p2c.phoneId 
+             LEFT JOIN colors c ON c.id = p2c.colorId
             """;
     private static final String INSERT_PHONE = """
             INSERT INTO phones (brand, model, price, displaySizeInches, weightGr, lengthMm, widthMm, heightMm, 
@@ -45,6 +62,7 @@ public class JdbcPhoneDao implements PhoneDao {
             ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); 
             """;
     private static final String INSERT_COLORS = "INSERT INTO phone2color (phoneId, colorId) VALUES ";
+    public static final String SELECT_PHONES_COUNT = "SELECT COUNT(*) FROM phones p";
 
     @Override
     public Optional<Phone> get(final Long key) {
@@ -67,9 +85,85 @@ public class JdbcPhoneDao implements PhoneDao {
     }
 
     @Override
-    @Transactional
     public List<Phone> findAll(int offset, int limit) {
-        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS, phoneListResultSetExtractor, limit, offset);
+        return jdbcTemplate.query(SELECT_PHONES_WITH_COLORS_WITH_LIMIT_AND_OFFSET, phoneListResultSetExtractor, limit,
+                offset);
+    }
+    @Override
+    public List<Phone> findAllInStock(int offset, int limit) {
+        return jdbcTemplate.query(SELECT_IN_STOCK_PHONES, phoneListResultSetExtractor, limit, offset);
+    }
+
+    @Override
+    public List<Phone> findAllInStock(String query, int offset, int limit) {
+        if (isBlank(query)) {
+            return findAllInStock(offset, limit);
+        }
+
+        return jdbcTemplate.query(getFindAllInStockByQueryString(query), phoneListResultSetExtractor, limit, offset);
+    }
+
+    private String getFindAllInStockByQueryString(String query) {
+        return """
+            SELECT p.*, p2c.*, c.code FROM 
+            (SELECT p.* FROM phones p JOIN stocks s ON p.id = s.phoneId WHERE s.stock > 0 
+            AND p.price IS NOT NULL"""
+                + getAndLikeQueryString(query) +
+             """ 
+             LIMIT ? OFFSET ?) p
+             LEFT JOIN phone2color p2c ON p.id = p2c.phoneId 
+             LEFT JOIN colors c ON c.id = p2c.colorId
+            """;
+    }
+
+    @Override
+    public List<Phone> findAllInStock(String query, SortField sortField, SortOrder sortOrder, int offset, int limit) {
+        if (sortField == null || sortOrder == null) {
+            return findAllInStock(query, offset, limit);
+        }
+
+        return jdbcTemplate.query(getFindAllInStockByQueryAndOrderString(query, sortField, sortOrder),
+                phoneListResultSetExtractor, limit, offset);
+    }
+
+    private String getFindAllInStockByQueryAndOrderString(String query, SortField sortField, SortOrder sortOrder) {
+        return """
+            SELECT p.*, p2c.*, c.code FROM 
+            (SELECT p.* FROM phones p JOIN stocks s ON p.id = s.phoneId WHERE s.stock > 0
+             AND p.price IS NOT NULL
+             """
+                + getAndLikeQueryString(query) +
+                 getSortingQuery(sortField, sortOrder) +
+                """
+                LIMIT ? OFFSET ?) p 
+                LEFT JOIN phone2color p2c ON p.id = p2c.phoneId 
+                LEFT JOIN colors c ON c.id = p2c.colorId
+               """;
+    }
+
+    @Override
+    public int countPhones(String query) {
+        return jdbcTemplate.queryForObject(SELECT_PHONES_COUNT + WHERE_PHONES_IN_STOCK +
+                        getAndLikeQueryString(query), Integer.class);
+    }
+
+    private static String getAndLikeQueryString(String query) {
+        if (query == null) {
+            query = "";
+        }
+
+        return " AND (IsNull('" + query + "', '') = '' OR UPPER(p.brand) LIKE UPPER('%" + query +
+                "%') OR UPPER(p.model) LIKE UPPER('%" + query + "%')) ";
+    }
+
+    private String getSortingQuery(SortField sortField, SortOrder sortOrder) {
+        String sortFieldName;
+        if (sortField == SortField.DISPLAY_SIZE) {
+            sortFieldName = "displaySizeInches";
+        } else {
+            sortFieldName = sortField.name();
+        }
+        return "ORDER BY p." + sortFieldName + " " + sortOrder.name() + " ";
     }
 
     private void saveColors(Phone phone) {
