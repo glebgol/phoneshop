@@ -2,6 +2,7 @@ package com.es.phoneshop.web.controller;
 
 import com.es.core.cart.Cart;
 import com.es.core.cart.CartService;
+import com.es.core.order.OutOfStockException;
 import com.es.phoneshop.web.dto.CartItemAddingResponse;
 import com.es.phoneshop.web.dto.CartItemDTO;
 import com.es.phoneshop.web.validation.QuantityValidator;
@@ -9,7 +10,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 
@@ -21,6 +26,7 @@ public class AjaxCartController {
 
     private static final String SUCCESS_ADDING_TO_CART = "success adding to cart!";
     private static final String INVALID_QUANTITY = "Invalid quantity";
+    private static final String OUT_OF_STOCK = "Quantity is out of stock!";
 
     public AjaxCartController(CartService cartService, QuantityValidator quantityValidator) {
         this.cartService = cartService;
@@ -39,7 +45,11 @@ public class AjaxCartController {
             return new ResponseEntity<>(new CartItemAddingResponse(INVALID_QUANTITY), HttpStatus.BAD_REQUEST);
         }
 
-        cartService.addPhone(cartItemDTO.getPhoneId().longValue(), cartItemDTO.getQuantity().longValue());
+        try {
+            cartService.addPhone(cartItemDTO.getPhoneId().longValue(), cartItemDTO.getQuantity().longValue());
+        } catch (OutOfStockException e) {
+            return new ResponseEntity<>(new CartItemAddingResponse(OUT_OF_STOCK), HttpStatus.BAD_REQUEST);
+        }
 
         Cart cart = cartService.getCart();
 

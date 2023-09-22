@@ -1,11 +1,11 @@
 package com.es.phoneshop.web.dto;
 
 public class CartItemDTO {
-    private Integer phoneId;
+    private Long phoneId;
 
-    private Integer quantity;
+    private Long quantity;
 
-    public CartItemDTO(Integer productId, Integer quantity) {
+    public CartItemDTO(Long productId, Long quantity) {
         this.phoneId = productId;
         this.quantity = quantity;
     }
@@ -13,19 +13,19 @@ public class CartItemDTO {
     public CartItemDTO() {
     }
 
-    public Integer getQuantity() {
+    public Long getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(Integer quantity) {
+    public void setQuantity(Long quantity) {
         this.quantity = quantity;
     }
 
-    public Integer getPhoneId() {
+    public Long getPhoneId() {
         return phoneId;
     }
 
-    public void setPhoneId(Integer phoneId) {
+    public void setPhoneId(Long phoneId) {
         this.phoneId = phoneId;
     }
 }
