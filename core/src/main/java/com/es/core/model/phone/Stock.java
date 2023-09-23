@@ -5,6 +5,13 @@ public class Stock {
     private Integer stock;
     private Integer reserved;
 
+    public Stock(Integer stock) {
+        this.stock = stock;
+    }
+
+    public Stock() {
+    }
+
     public Phone getPhone() {
         return phone;
     }

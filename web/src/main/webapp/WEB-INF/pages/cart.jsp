@@ -10,7 +10,11 @@
 <br>
 <c:choose>
   <c:when test="${cart.items.size() ne 0}">
-    <div style="color: red" id="errorMessage">${error}</div>
+    <div style="color: green" id="successMessage">${successMessage}</div>
+
+    <c:if test="${not empty errors}">
+      <div style="color: red" id="errorMessage">Errors while updating cart</div>
+    </c:if>
     <table class="table table-bordered">
       <thead>
       <tr class="table-secondary">
@@ -66,7 +70,8 @@
               <div>
                 <form:input value="${items[index].quantity}" path="items[${index}].quantity"/>
                 <spring:hidden value="${cartItem.phone.id}" path="items[${index}].phoneId"/>
-                <div style="color: red" id="errorMessage-${cartItem.phone.id}">${errors[cartItem.phone.id]}</div>
+                <c:set var="fieldName" value="items[${index}].quantity"/>
+                <div style="color: red" id="errorMessage-${cartItem.phone.id}">${errors[fieldName]}</div>
               </div>
             </td>
             <td>
