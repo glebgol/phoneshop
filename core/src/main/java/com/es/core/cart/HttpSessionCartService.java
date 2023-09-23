@@ -39,7 +39,7 @@ public class HttpSessionCartService implements CartService {
             createCartItem(quantity, phone);
         }
 
-        recalculateCart(cart);
+        recalculateCart();
     }
 
     @Override
@@ -59,15 +59,16 @@ public class HttpSessionCartService implements CartService {
                 }
             });
         }
+        recalculateCart();
     }
 
     @Override
     public void remove(Long phoneId) {
         cart.getItems().removeIf(p -> p.getPhone().getId().equals(phoneId));
-        recalculateCart(cart);
+        recalculateCart();
     }
 
-    private void recalculateCart(Cart cart) {
+    private void recalculateCart() {
         cart.setTotalQuantity(cart.getItems().stream()
                 .mapToInt(CartItem::getQuantity)
                 .sum());

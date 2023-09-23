@@ -8,72 +8,83 @@
 <br>
 <tags:productListLink/>
 <br>
-<table class="table table-bordered">
-  <thead>
-  <tr class="table-secondary">
-    <td>Image</td>
-    <td>
-      <div class="d-flex">
-        Brand
-      </div>
-    </td>
-    <td>
-      <div class="d-flex">
-        Model
-      </div>
-    </td>
-    <td>Color</td>
-    <td>
-      <div class="d-flex">Display size
-      </div>
-    </td>
-    <td>
-      <div class="d-flex">Price
-      </div>
-    </td>
-    <td>Quantity</td>
-    <td>Action</td>
-  </tr>
-  </thead>
-<%--  <form:form method="post" modelAttribute="cartItemListDTO"--%>
-<%--             action="${pageContext.request.contextPath}/cart">--%>
-    <c:forEach var="cartItem" items="${cart.items}" varStatus="loop">
-      <c:set var="index" value="${loop.index}"/>
-      <tr>
-      <td>
-        <a href="${pageContext.request.contextPath}/productDetails/${cartItem.phone.id}">
-          <img height="90" src="https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/${cartItem.phone.imageUrl}">
-        </a>
-      </td>
-      <td>${cartItem.phone.brand}</td>
-      <td>
-        <a href="${pageContext.request.contextPath}/productDetails/${cartItem.phone.id}">
-            ${cartItem.phone.model}
-        </a>
-      </td>
-      <td>
-        <c:forEach var="color" items="${cartItem.phone.colors}">
-          <p>${color.code}</p>
+<c:choose>
+  <c:when test="${cart.items.size() ne 0}">
+    <div style="color: red" id="errorMessage">${error}</div>
+    <table class="table table-bordered">
+      <thead>
+      <tr class="table-secondary">
+        <td>Image</td>
+        <td>
+          <div class="d-flex">
+            Brand
+          </div>
+        </td>
+        <td>
+          <div class="d-flex">
+            Model
+          </div>
+        </td>
+        <td>Color</td>
+        <td>
+          <div class="d-flex">Display size
+          </div>
+        </td>
+        <td>
+          <div class="d-flex">Price
+          </div>
+        </td>
+        <td>Quantity</td>
+        <td>Action</td>
+      </tr>
+      </thead>
+      <spring:form method="post" id="updateCart" modelAttribute="cartDTO"
+                   action="${pageContext.request.contextPath}/cart">
+        <c:forEach var="cartItem" items="${cart.items}" varStatus="loop">
+          <c:set var="index" value="${loop.index}"/>
+          <tr>
+            <td>
+              <a href="${pageContext.request.contextPath}/productDetails/${cartItem.phone.id}">
+                <img height="90" src="https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/${cartItem.phone.imageUrl}">
+              </a>
+            </td>
+            <td>${cartItem.phone.brand}</td>
+            <td>
+              <a href="${pageContext.request.contextPath}/productDetails/${cartItem.phone.id}">
+                  ${cartItem.phone.model}
+              </a>
+            </td>
+            <td>
+              <c:forEach var="color" items="${cartItem.phone.colors}">
+                <p>${color.code}</p>
+              </c:forEach>
+            </td>
+            <td>${cartItem.phone.displaySizeInches}''</td>
+            <td><fmt:formatNumber value="${cartItem.phone.price}" type="currency"
+                                  currencySymbol="$"/></td>
+            <td>
+              <div>
+                <form:input value="${items[index].quantity}" path="items[${index}].quantity"/>
+                <spring:hidden value="${cartItem.phone.id}" path="items[${index}].phoneId"/>
+                <div style="color: red" id="errorMessage-${cartItem.phone.id}">${errors[cartItem.phone.id]}</div>
+              </div>
+            </td>
+            <td>
+              <input form="deleteCartItem"
+                     formaction="${pageContext.servletContext.contextPath}/cart/delete/${cartItem.phone.id}"
+                     type="submit" value="Delete"/>
+            </td>
+          </tr>
         </c:forEach>
-      </td>
-      <td>${cartItem.phone.displaySizeInches}''</td>
-      <td><fmt:formatNumber value="${cartItem.phone.price}" type="currency"
-                            currencySymbol="$"/></td>
-      <td>
-        <div>
-<%--          <form:input path="items[${index}].quantity"/>--%>
-<%--          <form:hidden path="items[${index}].phoneId"/>--%>
-          <div style="color: green" id="successMessage-${cartItem.phone.id}"></div>
-          <div style="color: red" id="errorMessage-${cartItem.phone.id}"></div>
-        </div>
-      </td>
-      <td>
-        <form method="post" id="deleteCartItem" action="${pageContext.request.contextPath}/cart/${cartItem.phone.id}">
-          <input type="submit" value="Delete"/>
-        </form>
-      </td>
-    </tr>
-    </c:forEach>
-<%--  </form:form>--%>
-
-</table>
+      </spring:form>
+      <form id="deleteCartItem" method="post">
+      </form>
+    </table>
+    <p>
+      <input form="updateCart" type="submit" value="Update"/>
+    </p>
+  </c:when>
+  <c:otherwise>
+    Empty cart
+  </c:otherwise>
+</c:choose>

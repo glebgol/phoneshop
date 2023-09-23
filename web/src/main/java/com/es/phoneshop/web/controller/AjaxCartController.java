@@ -5,10 +5,11 @@ import com.es.core.cart.CartService;
 import com.es.core.order.OutOfStockException;
 import com.es.phoneshop.web.dto.CartItemAddingResponse;
 import com.es.phoneshop.web.dto.CartItemDTO;
-import com.es.phoneshop.web.validation.QuantityValidator;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.Validator;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,20 +23,20 @@ import javax.validation.Valid;
 @RequestMapping(value = "/ajaxCart")
 public class AjaxCartController {
     private final CartService cartService;
-    private final QuantityValidator quantityValidator;
+    private final Validator validator;
 
     private static final String SUCCESS_ADDING_TO_CART = "success adding to cart!";
     private static final String INVALID_QUANTITY = "Invalid quantity";
     private static final String OUT_OF_STOCK = "Quantity is out of stock!";
 
-    public AjaxCartController(CartService cartService, QuantityValidator quantityValidator) {
+    public AjaxCartController(CartService cartService, @Qualifier("quantityValidator") Validator validator) {
         this.cartService = cartService;
-        this.quantityValidator = quantityValidator;
+        this.validator = validator;
     }
 
     @InitBinder
     private void initBinder(WebDataBinder binder) {
-        binder.setValidator(quantityValidator);
+        binder.setValidator(validator);
     }
 
     @PostMapping
@@ -46,7 +47,7 @@ public class AjaxCartController {
         }
 
         try {
-            cartService.addPhone(cartItemDTO.getPhoneId().longValue(), cartItemDTO.getQuantity().longValue());
+            cartService.addPhone(cartItemDTO.getPhoneId(), cartItemDTO.getQuantity());
         } catch (OutOfStockException e) {
             return new ResponseEntity<>(new CartItemAddingResponse(OUT_OF_STOCK), HttpStatus.BAD_REQUEST);
         }
