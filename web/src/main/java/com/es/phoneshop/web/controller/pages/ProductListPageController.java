@@ -7,6 +7,7 @@ import com.es.core.model.phone.dao.PhoneDao;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -32,9 +33,13 @@ public class ProductListPageController {
         model.addAttribute("phones", phoneDao.findAllInStock(search, sort, order, offset, PAGE_LIMIT));
         model.addAttribute("pagesCount", getPagesCount(search));
         model.addAttribute("currentPage", page);
-        model.addAttribute("cart", cartService.getCart());
 
         return "productList";
+    }
+
+    @ModelAttribute
+    public void addCartAttribute(Model model) {
+        model.addAttribute("cart", cartService.getCart());
     }
 
     private int getPagesCount(String search) {

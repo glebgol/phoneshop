@@ -6,9 +6,11 @@
 
 <div>
     <c:if test="${pagesCount ne 0}">
-        <a href="${pageContext.request.contextPath}/productList?page=${currentPage - 1}&search=${param.search}">
-            <span class="glyphicon glyphicon-arrow-left"></span>
-        </a>
+        <c:if test="${currentPage gt 1}">
+            <a href="${pageContext.request.contextPath}/productList?page=${currentPage - 1}&search=${param.search}">
+                <span class="glyphicon glyphicon-arrow-left"></span>
+            </a>
+        </c:if>
 
         <c:choose>
             <c:when test="${currentPage eq 1}">

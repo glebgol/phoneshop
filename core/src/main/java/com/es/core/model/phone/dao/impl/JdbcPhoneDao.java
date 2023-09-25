@@ -46,7 +46,10 @@ public class JdbcPhoneDao implements PhoneDao {
             LEFT JOIN colors c ON c.id = p2c.colorId
             WHERE p.id = ?
             """;
-    public static final String WHERE_PHONES_IN_STOCK = " WHERE (SELECT stock FROM stocks WHERE phoneId = p.id) > 0 ";
+    public static final String WHERE_PHONES_IN_STOCK = """
+             WHERE (SELECT stock FROM stocks WHERE phoneId = p.id) > 0 
+             AND p.price IS NOT NULL 
+            """;
     public static final String SELECT_IN_STOCK_PHONES = """
             SELECT p.*, p2c.*, c.code FROM 
             (SELECT p.* FROM phones p JOIN stocks s ON p.id = s.phoneId WHERE s.stock > 0 
