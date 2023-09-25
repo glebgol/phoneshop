@@ -50,7 +50,7 @@ public class HttpSessionCartServiceTest {
     public void addNewPhoneToCart() throws OutOfStockException {
         when(phoneDao.get(PHONE_ID)).thenReturn(Optional.of(PHONE));
         when(cart.getItems()).thenReturn(EMPTY_CART_ITEM_LIST);
-        when(stockDao.getByPhoneId(PHONE_ID)).thenReturn(Optional.of(STOCK));
+        when(stockDao.getByPhoneId(PHONE_ID)).thenReturn(STOCK);
         BigDecimal expectedTotalCost = PHONE.getPrice().multiply(BigDecimal.valueOf(QUANTITY));
         int expectedTotalQuantity = QUANTITY.intValue();
 
@@ -64,16 +64,15 @@ public class HttpSessionCartServiceTest {
     public void addNewPhoneToCartThrowsOutOfStockException() throws OutOfStockException {
         when(phoneDao.get(PHONE_ID)).thenReturn(Optional.of(PHONE));
         when(cart.getItems()).thenReturn(EMPTY_CART_ITEM_LIST);
-        when(stockDao.getByPhoneId(PHONE_ID)).thenReturn(Optional.of(STOCK));
+        when(stockDao.getByPhoneId(PHONE_ID)).thenReturn(STOCK);
 
         cartService.addPhone(PHONE_ID, OUT_OF_STOCK_QUANTITY);
     }
 
     @Test
     public void addExistingPhoneToCart() throws OutOfStockException {
-        when(phoneDao.get(PHONE_ID)).thenReturn(Optional.of(PHONE));
         when(cart.getItems()).thenReturn(CART_ITEM_LIST);
-        when(stockDao.getByPhoneId(PHONE_ID)).thenReturn(Optional.of(STOCK));
+        when(stockDao.getByPhoneId(PHONE_ID)).thenReturn(STOCK);
         BigDecimal expectedTotalCost = PHONE.getPrice().multiply(BigDecimal.valueOf(QUANTITY * 2));
         int expectedTotalQuantity = QUANTITY.intValue() * 2;
 
@@ -85,16 +84,15 @@ public class HttpSessionCartServiceTest {
 
     @Test(expected = OutOfStockException.class)
     public void addExistingPhoneToCartThrowsOutOfStockException() throws OutOfStockException {
-        when(phoneDao.get(PHONE_ID)).thenReturn(Optional.of(PHONE));
         when(cart.getItems()).thenReturn(CART_ITEM_LIST);
-        when(stockDao.getByPhoneId(PHONE_ID)).thenReturn(Optional.of(STOCK));
+        when(stockDao.getByPhoneId(PHONE_ID)).thenReturn(STOCK);
 
         cartService.addPhone(PHONE_ID, OUT_OF_STOCK_QUANTITY);
     }
 
     @Test
     public void updateCart() throws OutOfStockException {
-        when(stockDao.getByPhoneId(PHONE_ID)).thenReturn(Optional.of(STOCK));
+        when(stockDao.getByPhoneId(PHONE_ID)).thenReturn(STOCK);
         when(cart.getItems()).thenReturn(CART_ITEM_LIST);
         BigDecimal expectedTotalCost = PHONE.getPrice().multiply(BigDecimal.valueOf(QUANTITY));
         int expectedTotalQuantity = QUANTITY.intValue();
@@ -107,7 +105,7 @@ public class HttpSessionCartServiceTest {
 
     @Test(expected = OutOfStockException.class)
     public void updateCartThrowsOutOfStockException() throws OutOfStockException {
-        when(stockDao.getByPhoneId(PHONE_ID)).thenReturn(Optional.of(STOCK));
+        when(stockDao.getByPhoneId(PHONE_ID)).thenReturn(STOCK);
 
         cartService.update(OUT_OF_STOCK_UPDATE_ITEMS);
     }

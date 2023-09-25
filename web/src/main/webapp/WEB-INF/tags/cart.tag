@@ -2,7 +2,7 @@
 <%@ attribute name="cart" required="true" type="com.es.core.cart.Cart" %>
 
 <form action="${pageContext.request.contextPath}/cart">
-    <button>
+    <button class="btn btn-primary">
         <p>
             <span id ="totalQuantity">Cart: ${cart.totalQuantity} items</span>
         </p>

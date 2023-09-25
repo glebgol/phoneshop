@@ -9,7 +9,7 @@ function addToCart(id) {
                 'Content-Type': 'application/json'
             },
             type: "POST",
-            url: "http://localhost:8080/phoneshop-web/ajaxCart/",
+            url: contextPath + "/ajaxCart/",
             dataType: "json",
             data: JSON.stringify(cartItem),
             responseType: 'json',

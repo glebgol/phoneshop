@@ -39,7 +39,7 @@ public class CartDTOValidator implements Validator {
             } else if (updateQuantity < 1) {
                 errors.rejectValue("items['" + i + "'].quantity", "","Should be positive integer");
             } else {
-                Stock stock = stockDao.getByPhoneId(id).get();
+                Stock stock = stockDao.getByPhoneId(id);
                 if (updateQuantity > stock.getStock()) {
                     errors.rejectValue("items['" + i + "'].quantity","Out of stock", "Out of stock");
                 }
