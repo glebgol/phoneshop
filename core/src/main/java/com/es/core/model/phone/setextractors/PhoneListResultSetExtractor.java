@@ -26,7 +26,7 @@ public class PhoneListResultSetExtractor implements ResultSetExtractor<List<Phon
             Phone phone = phones.get(id);
 
             if (phone == null) {
-                phone = getPhone(id, resultSet);
+                phone = getPhone(resultSet);
                 phones.put(id, phone);
             }
 

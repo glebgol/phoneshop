@@ -7,11 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Optional;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration("classpath:context/applicationContext-core-test.xml")
@@ -24,16 +22,16 @@ public class JdbcStockDaoIntTest {
 
     @Test
     public void getNonExistentPhone() {
-        Optional<Stock> stock = stockDao.getByPhoneId(NON_EXISTING_PHONE_ID);
+        Stock stock = stockDao.getByPhoneId(NON_EXISTING_PHONE_ID);
 
-        assertFalse(stock.isPresent());
+        assertNull(stock);
     }
 
     @Test
     public void getExistingPhone() {
-        Optional<Stock> stock = stockDao.getByPhoneId(EXISTING_PHONE_ID);
+        Stock stock = stockDao.getByPhoneId(EXISTING_PHONE_ID);
 
-        assertTrue(stock.isPresent());
-        assertEquals(EXISTING_PHONE_ID, stock.get().getPhone().getId());
+        assertNotNull(stock);
+        assertEquals(EXISTING_PHONE_ID, stock.getPhone().getId());
     }
 }

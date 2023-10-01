@@ -2,10 +2,11 @@ package com.es.core.model.order;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
-public class Order
-{
+public class Order {
     private Long id;
+    private UUID secureId;
     private List<OrderItem> orderItems;
     /**
      *  A sum of order item prices;
@@ -16,13 +17,20 @@ public class Order
      * <code>subtotal</code> + <code>deliveryPrice</code>
      */
     private BigDecimal totalPrice;
-
     private String firstName;
     private String lastName;
     private String deliveryAddress;
     private String contactPhoneNo;
-
+    private String additionalInfo;
     private OrderStatus status;
+
+    public String getAdditionalInfo() {
+        return additionalInfo;
+    }
+
+    public void setAdditionalInfo(String additionalInfo) {
+        this.additionalInfo = additionalInfo;
+    }
 
     public Long getId() {
         return id;
@@ -102,5 +110,13 @@ public class Order
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public UUID getSecureId() {
+        return secureId;
+    }
+
+    public void setSecureId(UUID secureId) {
+        this.secureId = secureId;
     }
 }

@@ -30,13 +30,12 @@ public class HttpSessionCartService implements CartService {
 
     @Override
     public void addPhone(Long phoneId, Long quantity) throws OutOfStockException {
-        Phone phone = phoneDao.get(phoneId).get();
-        Optional<CartItem> cartItem = findCartItemByPhone(phone);
+        Optional<CartItem> cartItem = findCartItemByPhone(phoneId);
 
         if (cartItem.isPresent()) {
             addCartItemQuantity(quantity, cartItem.get());
         } else {
-            createCartItem(quantity, phone);
+            createCartItem(quantity, phoneId);
         }
 
         recalculateCart();
@@ -47,9 +46,9 @@ public class HttpSessionCartService implements CartService {
         for (var item: items.entrySet()) {
             Long phoneId = item.getKey();
             Long quantity = item.getValue();
-            Optional<Stock> stock = stockDao.getByPhoneId(phoneId);
+            Stock stock = stockDao.getByPhoneId(phoneId);
 
-            if (stock.isPresent() && stock.get().getStock() < quantity) {
+            if (stock.getStock() < quantity) {
                 throw new OutOfStockException();
             }
 
@@ -68,6 +67,28 @@ public class HttpSessionCartService implements CartService {
         recalculateCart();
     }
 
+    @Override
+    public void clearCart() {
+        cart.getItems().clear();
+        cart.setTotalQuantity(0);
+        cart.setTotalCost(new BigDecimal(0));
+    }
+
+    @Override
+    public void removeOutOfStockItems() throws OutOfStockException {
+        int totalQuantityBeforeRemoving = cart.getTotalQuantity();
+
+        cart.getItems().removeIf(cartItem ->
+                cartItem.getQuantity() > stockDao.getByPhoneId(cartItem.getPhone().getId()).getStock());
+        recalculateCart();
+
+        int totalQuantityAfterRemoving = cart.getTotalQuantity();
+
+        if (totalQuantityBeforeRemoving > totalQuantityAfterRemoving) {
+            throw new OutOfStockException();
+        }
+    }
+
     private void recalculateCart() {
         cart.setTotalQuantity(cart.getItems().stream()
                 .mapToInt(CartItem::getQuantity)
@@ -79,13 +100,14 @@ public class HttpSessionCartService implements CartService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add));
     }
 
-    private Optional<CartItem> findCartItemByPhone(Phone phone) {
+    private Optional<CartItem> findCartItemByPhone(Long phoneId) {
         return cart.getItems().stream()
-                .filter(cartItem -> cartItem.getPhone().getId().equals(phone.getId()))
+                .filter(cartItem -> cartItem.getPhone().getId().equals(phoneId))
                 .findAny();
     }
 
-    private void createCartItem(Long quantity, Phone phone) throws OutOfStockException {
+    private void createCartItem(Long quantity, Long phoneId) throws OutOfStockException {
+        Phone phone = phoneDao.get(phoneId).get();
         checkCreatingPossibility(quantity, phone);
         cart.getItems().add(new CartItem(phone, quantity.intValue()));
     }
@@ -96,17 +118,17 @@ public class HttpSessionCartService implements CartService {
     }
 
     private void checkCreatingPossibility(Long quantity, Phone phone) throws OutOfStockException {
-        Optional<Stock> stock = stockDao.getByPhoneId(phone.getId());
+        Stock stock = stockDao.getByPhoneId(phone.getId());
 
-        if (stock.isPresent() && stock.get().getStock() < quantity) {
+        if (stock.getStock() < quantity) {
             throw new OutOfStockException();
         }
     }
 
     private void checkAddingPossibility(CartItem cartItem, Long quantity) throws OutOfStockException {
-        Optional<Stock> stock = stockDao.getByPhoneId(cartItem.getPhone().getId());
+        Stock stock = stockDao.getByPhoneId(cartItem.getPhone().getId());
 
-        if (stock.isPresent() && stock.get().getStock() < quantity + cartItem.getQuantity()) {
+        if (stock.getStock() < quantity + cartItem.getQuantity()) {
             throw new OutOfStockException();
         }
     }
