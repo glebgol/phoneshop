@@ -73,7 +73,8 @@ create table orders (
     deliveryAddress VARCHAR(200),
     contactPhoneNo VARCHAR(20),
     additionalInfo VARCHAR(4096),
-    status VARCHAR(20)
+    status VARCHAR(20),
+    dateTime TIMESTAMP NOT NULL
 );
 
 create table order_items (

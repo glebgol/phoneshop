@@ -1,5 +1,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
 <script src="${pageContext.request.contextPath}/js/addToCart.js" type="text/javascript"></script>
+<script src="${pageContext.request.contextPath}/js/updateOrder.js" type="text/javascript"></script>
 <script type="text/javascript">
     const contextPath='${pageContext.request.contextPath}';
 </script>

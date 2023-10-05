@@ -76,15 +76,12 @@ public class HttpSessionCartService implements CartService {
 
     @Override
     public void removeOutOfStockItems() throws OutOfStockException {
-        int totalQuantityBeforeRemoving = cart.getTotalQuantity();
-
-        cart.getItems().removeIf(cartItem ->
+        boolean isOutOfStock = cart.getItems().removeIf(cartItem ->
                 cartItem.getQuantity() > stockDao.getByPhoneId(cartItem.getPhone().getId()).getStock());
+
         recalculateCart();
 
-        int totalQuantityAfterRemoving = cart.getTotalQuantity();
-
-        if (totalQuantityBeforeRemoving > totalQuantityAfterRemoving) {
+        if (isOutOfStock) {
             throw new OutOfStockException();
         }
     }
