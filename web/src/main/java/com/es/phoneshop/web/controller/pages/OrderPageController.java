@@ -48,9 +48,10 @@ public class OrderPageController {
     @PostMapping
     public String placeOrder(@ModelAttribute Order order, @ModelAttribute @Valid OrderForm orderForm,
                              BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("orderForm", orderForm);
+
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("errors", getErrors(bindingResult));
-            redirectAttributes.addFlashAttribute("orderForm", orderForm);
             return "redirect:/order";
         }
 

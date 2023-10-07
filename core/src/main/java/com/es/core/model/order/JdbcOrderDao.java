@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,11 +19,14 @@ import java.util.UUID;
 public class JdbcOrderDao implements OrderDao {
     private final JdbcTemplate jdbcTemplate;
     private final OrderResultSetExtractor orderResultSetExtractor;
+    private final OrderOverviewListResultSetExtractor orderOverviewListResultSetExtractor;
     private final PhoneDao phoneDao;
 
-    public JdbcOrderDao(JdbcTemplate jdbcTemplate, OrderResultSetExtractor orderResultSetExtractor, PhoneDao phoneDao) {
+    public JdbcOrderDao(JdbcTemplate jdbcTemplate, OrderResultSetExtractor orderResultSetExtractor,
+                        OrderOverviewListResultSetExtractor orderOverviewListResultSetExtractor, PhoneDao phoneDao) {
         this.jdbcTemplate = jdbcTemplate;
         this.orderResultSetExtractor = orderResultSetExtractor;
+        this.orderOverviewListResultSetExtractor = orderOverviewListResultSetExtractor;
         this.phoneDao = phoneDao;
     }
 
@@ -33,9 +38,14 @@ public class JdbcOrderDao implements OrderDao {
     private static final String SELECT_ORDER_BY_SECURE_ID = SELECT_ORDERS + " WHERE o.secureId = ?";
     private final String INSERT_ORDER = """
             INSERT INTO orders (subTotal, deliveryPrice, totalPrice, firstName, lastName, deliveryAddress, 
-            contactPhoneNo, secureId, additionalInfo, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            contactPhoneNo, secureId, additionalInfo, status, dateTime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
     private static final String INSERT_ITEMS = "INSERT INTO order_items (phoneId, orderId, quantity) VALUES ";
+    private static final String SELECT_ORDERS_FOR_OVERVIEW = """
+            SELECT orderId, firstName, lastName, contactPhoneNo, deliveryAddress, dateTime, totalPrice, status 
+            FROM orders
+            """;
+    private static final String UPDATE_ORDER_STATUS = "UPDATE orders SET status = ? WHERE orderId = ?";
 
     @Override
     public Optional<Order> get(Long id) {
@@ -46,10 +56,15 @@ public class JdbcOrderDao implements OrderDao {
 
     @Override
     public Optional<Order> get(UUID secureId) {
-        Optional<Order> order = Optional.ofNullable(jdbcTemplate.query(SELECT_ORDER_BY_SECURE_ID, orderResultSetExtractor,
-                secureId));
+        Optional<Order> order = Optional.ofNullable(jdbcTemplate.query(SELECT_ORDER_BY_SECURE_ID,
+                orderResultSetExtractor, secureId));
         setOrderItemsPhones(order);
         return order;
+    }
+
+    @Override
+    public List<OrderOverview> getOrders() {
+        return jdbcTemplate.query(SELECT_ORDERS_FOR_OVERVIEW, orderOverviewListResultSetExtractor);
     }
 
     private void setOrderItemsPhones(Optional<Order> order) {
@@ -72,9 +87,13 @@ public class JdbcOrderDao implements OrderDao {
         saveItems(order.getOrderItems());
     }
 
+    @Override
+    public void setOrderStatus(Long orderId, OrderStatus orderStatus) {
+        jdbcTemplate.update(UPDATE_ORDER_STATUS, orderStatus.toString(), orderId);
+    }
+
     private void saveItems(List<OrderItem> orderItems) {
-        String s = INSERT_ITEMS + getOrderItemsValuesString(orderItems);
-        jdbcTemplate.update(s);
+        jdbcTemplate.update(INSERT_ITEMS + getOrderItemsValuesString(orderItems));
     }
 
     private String getOrderItemsValuesString(List<OrderItem> orderItems) {
@@ -96,6 +115,8 @@ public class JdbcOrderDao implements OrderDao {
 
     private void setArguments(Order order, PreparedStatement ps) throws SQLException {
         order.setSecureId(UUID.randomUUID());
+        order.setDate(new Date());
+
         if (order.getSubtotal() == null) {
             ps.setString(1, null);
         } else {
@@ -121,5 +142,6 @@ public class JdbcOrderDao implements OrderDao {
         ps.setString(8, order.getSecureId().toString());
         ps.setString(9, order.getAdditionalInfo());
         ps.setString(10, order.getStatus().toString());
+        ps.setTimestamp(11, new Timestamp(order.getDate().getTime()));
     }
 }

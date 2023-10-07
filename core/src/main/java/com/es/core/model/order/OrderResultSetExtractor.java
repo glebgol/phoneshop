@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 
 @Component
 public class OrderResultSetExtractor implements ResultSetExtractor<Order> {
@@ -42,6 +43,7 @@ public class OrderResultSetExtractor implements ResultSetExtractor<Order> {
 
     private Order getOrder(ResultSet resultSet) throws SQLException {
         Order order = new Order();
+        order.setDate(new Date(resultSet.getTimestamp("dateTime").getTime()));
         order.setOrderItems(new ArrayList<>());
         order.setId(resultSet.getLong("orderId"));
         order.setSecureId(resultSet.getObject("secureId", java.util.UUID.class));
