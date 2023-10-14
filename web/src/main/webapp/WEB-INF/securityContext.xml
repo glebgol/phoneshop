@@ -10,7 +10,7 @@
         <intercept-url pattern="/admin/**" access="hasRole('ROLE_ADMIN')"/>
         <form-login authentication-success-handler-ref="loginHandler"/>
         <logout logout-url="/logout" success-handler-ref="logOutHandler"/>
-        <custom-filter before="FORM_LOGIN_FILTER" ref="logInFilter" />
+        <custom-filter after="FORM_LOGIN_FILTER" ref="logInFilter" />
         <csrf disabled="true"/>
     </http>
 

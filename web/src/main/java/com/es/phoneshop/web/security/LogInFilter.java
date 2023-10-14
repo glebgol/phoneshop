@@ -16,15 +16,7 @@ public class LogInFilter extends GenericFilterBean {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
             ServletException {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-
-        if (httpServletRequest.getMethod().equals("GET") && isSuccessfulLogIn(httpServletRequest)) {
-            httpServletRequest.getSession().setAttribute("urlBefore", httpServletRequest.getHeader("Referer"));
-        }
-
+        httpServletRequest.getSession().setAttribute("urlBefore", httpServletRequest.getHeader("Referer"));
         chain.doFilter(request, response);
-    }
-
-    private boolean isSuccessfulLogIn(HttpServletRequest httpServletRequest) {
-        return httpServletRequest.getPathInfo() != null && !httpServletRequest.getPathInfo().contains("/login?error");
     }
 }
