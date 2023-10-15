@@ -25,7 +25,7 @@ public class ProductListPageController {
 
     @GetMapping
     public String showProductList(@RequestParam(defaultValue = "1") Integer page,
-                                  @RequestParam(required = false) String search,
+                                  @RequestParam(defaultValue = "", required = false) String search,
                                   @RequestParam(required = false) SortField sort,
                                   @RequestParam(required = false) SortOrder order, Model model) {
         int offset = PAGE_LIMIT * (page - 1);
