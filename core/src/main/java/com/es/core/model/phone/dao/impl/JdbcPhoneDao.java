@@ -47,6 +47,12 @@ public class JdbcPhoneDao implements PhoneDao {
             LEFT JOIN colors c ON c.id = p2c.colorId
             WHERE p.id = :id
             """;
+    private static final String SELECT_PHONE_BY_MODEL = """
+            SELECT p.*, p2c.*, c.code FROM phones p
+            LEFT JOIN phone2color p2c ON p.id = p2c.phoneId
+            LEFT JOIN colors c ON c.id = p2c.colorId
+            WHERE p.model = :model
+            """;
     private static final String SELECT_IN_STOCK_PHONES = """
             SELECT p.*, p2c.*, c.code FROM 
             (SELECT p.* FROM phones p JOIN stocks s ON p.id = s.phoneId WHERE s.stock > 0 
@@ -89,6 +95,12 @@ public class JdbcPhoneDao implements PhoneDao {
     public Optional<Phone> get(final Long key) {
         return Optional.ofNullable(namedParameterJdbcTemplate.query(SELECT_PHONE_BY_ID_WITH_COLORS,
                 Map.of("id", key), phoneResultSetExtractor));
+    }
+
+    @Override
+    public Optional<Phone> get(String model) {
+        return Optional.ofNullable(namedParameterJdbcTemplate.query(SELECT_PHONE_BY_MODEL,
+                Map.of("model", model), phoneResultSetExtractor));
     }
 
     @Override

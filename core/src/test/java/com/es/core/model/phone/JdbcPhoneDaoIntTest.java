@@ -30,6 +30,7 @@ public class JdbcPhoneDaoIntTest {
             new Color(1001L, "White"), new Color(1002L, "Yellow"));
     private static final String MODEL = "Mi 11 lite";
     private static final String BRAND = "Xiaomi";
+    private static final String MODEL1 = "ARCHOS 101 Oxygen";
     private static final Phone PHONE_FOR_SAVE = Phone.builder()
             .model(MODEL).brand(BRAND).colors(COLORS)
             .build();
@@ -48,6 +49,13 @@ public class JdbcPhoneDaoIntTest {
 
         assertTrue(phone.isPresent());
         assertEquals(EXISTING_PHONE_ID, phone.get().getId());
+    }
+
+    @Test
+    public void getExistingPhone2() {
+        Optional<Phone> phone = phoneDao.get(MODEL1);
+
+        assertTrue(phone.isPresent());
     }
 
     @Test
