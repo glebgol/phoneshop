@@ -10,15 +10,14 @@ import com.es.phoneshop.web.validation.QuickAddDtoValidator;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Map;
 import java.util.List;
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -68,7 +67,6 @@ public class QuickAddPageController {
         redirectAttributes.addFlashAttribute("quickAddDto", quickAddDto);
         quickAddDtoValidator.validate(quickAddDto, bindingResult);
 
-        Map<String, String> errors = new HashMap<>();
         List<String> successfulAdditions = new ArrayList<>();
 
         for (int i = 0; i < quickAddDto.getItems().size(); i++) {
@@ -78,47 +76,41 @@ public class QuickAddPageController {
 
             if (optionalPhone.isPresent()) {
                 Phone phone = optionalPhone.get();
-                addToCart(phone, errors, successfulAdditions, quickAddRowDto, i);
+                addToCart(phone, successfulAdditions, quickAddRowDto, i, bindingResult);
             } else if (!isBlank(quickAddRowDto.getModel())) {
-                addPhoneNotFoundError(errors, i);
+                addNotFoundPhoneError(bindingResult, i);
             }
         }
 
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorMessage", ERROR);
-            errors.putAll(getErrors(bindingResult));
         }
 
+        redirectAttributes.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX + "quickAddDto", bindingResult);
         redirectAttributes.addFlashAttribute("success", successfulAdditions);
-        redirectAttributes.addFlashAttribute("errors", errors);
         return QUICK_ADD_PAGE_REDIRECT;
     }
 
-    private void addToCart(Phone phone, Map<String, String> errors, List<String> successfulAdditions,
-                           QuickAddRowDto quickAddRowDto, int index) {
+    private void addToCart(Phone phone, List<String> successfulAdditions,
+                           QuickAddRowDto quickAddRowDto, int index, BindingResult bindingResult) {
         if (isValid(quickAddRowDto)) {
             try {
                 cartService.addPhone(phone.getId(), quickAddRowDto.getQuantity());
                 successfulAdditions.add(phone.getModel());
             } catch (OutOfStockException e) {
-                addOutOfStockError(errors, index);
+                addOutOfStockError(bindingResult, index);
             }
         }
     }
 
-    private void addPhoneNotFoundError(Map<String, String> errors, int index) {
-        errors.put("items[" + index + "].model", "Not found");
+    private void addNotFoundPhoneError(BindingResult bindingResult, int index) {
+        bindingResult.addError(new FieldError("quickAddDto", "items[" + index + "].model",
+                "Not found"));
     }
 
-    private void addOutOfStockError(Map<String, String> errors, int index) {
-        errors.put("items[" + index + "].quantity", "Out of stock");
-    }
-
-    private Map<String, String> getErrors(BindingResult bindingResult) {
-        Map<String, String> errors = new HashMap<>();
-        bindingResult.getAllErrors().forEach(objectError -> errors.put(objectError.getCode(),
-                objectError.getDefaultMessage()));
-        return errors;
+    private void addOutOfStockError(BindingResult bindingResult, int index) {
+        bindingResult.addError(new FieldError("quickAddDto", "items[" + index + "].quantity",
+                "Out of stock"));
     }
 
     private boolean isValid(QuickAddRowDto quickAddRowDto) {

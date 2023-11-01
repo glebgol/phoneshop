@@ -36,11 +36,14 @@
           <form:input value="${quickAddDto.items.get(index).model}" name="Model" path="items[${index}].model"/>
           <c:set var="fieldName" value="items[${index}].model"/>
           <div style="color: red">${errors[fieldName]}</div>
+          <form:errors style="color: red" path="items[${index}].model"/>
         </td>
         <td>
           <form:input value="${quickAddDto.items.get(index).quantity}" name="Quantity" path="items[${index}].quantity"/>
           <c:set var="fieldName" value="items[${index}].quantity"/>
           <div style="color: red">${errors[fieldName]}</div>
+          <form:errors style="color: red" path="items[${index}].quantity"/>
+
         </td>
         </td>
       </tr>
