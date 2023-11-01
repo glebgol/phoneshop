@@ -1,16 +1,13 @@
 package com.es.phoneshop.web.dto;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class QuickAddDto {
     private List<QuickAddRowDto> items;
 
     public QuickAddDto(int rowsCount) {
-        items = new ArrayList<>();
-        for (int i = 0; i < rowsCount; i++) {
-            items.add(new QuickAddRowDto());
-        }
+        items = Arrays.asList(new QuickAddRowDto[rowsCount]);
     }
 
     public QuickAddDto() {
